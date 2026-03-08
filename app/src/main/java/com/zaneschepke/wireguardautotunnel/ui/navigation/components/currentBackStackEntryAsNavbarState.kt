@@ -220,7 +220,9 @@ fun currentRouteAsNavbarState(
                             Row {
                                 IconButton(
                                     onClick = {
-                                        sharedViewModel.postSideEffect(LocalSideEffect.SortByLatency)
+                                        sharedViewModel.postSideEffect(
+                                            LocalSideEffect.SortByLatency
+                                        )
                                     }
                                 ) {
                                     Icon(

@@ -4,7 +4,9 @@ import com.zaneschepke.wireguardautotunnel.domain.model.TunnelConfig
 
 sealed class LocalSideEffect {
     data object Sort : LocalSideEffect()
+
     data object SortByLatency : LocalSideEffect()
+
     data class LatencySortFinished(
         val tunnels: List<TunnelConfig>,
         val latencies: Map<Int, Double>,
