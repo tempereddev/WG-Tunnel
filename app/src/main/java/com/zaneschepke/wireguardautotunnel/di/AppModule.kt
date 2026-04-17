@@ -13,6 +13,7 @@ import com.zaneschepke.wireguardautotunnel.core.shortcut.ShortcutManager
 import com.zaneschepke.wireguardautotunnel.domain.repository.GlobalEffectRepository
 import com.zaneschepke.wireguardautotunnel.domain.repository.SelectedTunnelsRepository
 import com.zaneschepke.wireguardautotunnel.util.FileUtils
+import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
 import com.zaneschepke.wireguardautotunnel.viewmodel.*
 import kotlinx.coroutines.CoroutineDispatcher
@@ -57,6 +58,7 @@ val appModule = module {
     singleOf(::SelectedTunnelsRepository)
 
     single { NetworkUtils(get(named(Dispatcher.IO))) }
+    single { GeoIpService(get(), get(named(Dispatcher.IO))) }
 
     viewModelOf(::AutoTunnelViewModel)
     viewModel { (id: Int?) -> ConfigViewModel(get(), get(), get(), id) }

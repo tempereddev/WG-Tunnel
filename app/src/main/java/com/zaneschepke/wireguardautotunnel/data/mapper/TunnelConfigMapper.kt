@@ -20,6 +20,9 @@ fun Entity.toDomain(): Domain =
         position = position,
         autoTunnelApps = autoTunnelApps,
         isMetered = isMetered,
+        countryName = countryName,
+        countryCode = countryCode,
+        resolvedIp = resolvedIp,
     )
 
 fun Domain.toEntity(): Entity =
@@ -39,4 +42,7 @@ fun Domain.toEntity(): Entity =
         position = position,
         autoTunnelApps = autoTunnelApps,
         isMetered = isMetered,
+        countryName = countryName,
+        countryCode = countryCode,
+        resolvedIp = resolvedIp,
     )

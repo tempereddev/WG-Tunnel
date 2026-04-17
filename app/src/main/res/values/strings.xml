@@ -244,6 +244,9 @@
     <string name="sort">Sort</string>
     <string name="sort_by_latency">Sort by latency</string>
     <string name="pinging_servers">Pinging servers…</string>
+    <string name="fetch_countries">Fetch country flags</string>
+    <string name="fetching_countries">Fetching countries…</string>
+    <string name="countries_updated">Country info updated</string>
     <string name="drag_handle">Drag Handle</string>
     <string name="move_up">Move Up</string>
     <string name="move_down">Move Down</string>

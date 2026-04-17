@@ -37,6 +37,7 @@ import com.zaneschepke.wireguardautotunnel.ui.theme.AlertRed
 import com.zaneschepke.wireguardautotunnel.ui.theme.SilverTree
 import com.zaneschepke.wireguardautotunnel.ui.theme.Straw
 import com.zaneschepke.wireguardautotunnel.util.extensions.isSortedBy
+import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.viewmodel.SharedAppViewModel
 import org.koin.compose.viewmodel.koinActivityViewModel
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -76,9 +77,16 @@ fun SortScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel()) {
             LocalSideEffect.SortByLatency -> {
                 sharedViewModel.sortByLatency(editableTunnels)
             }
+            LocalSideEffect.FetchCountries -> {
+                sharedViewModel.fetchCountries(editableTunnels)
+            }
             is LocalSideEffect.LatencySortFinished -> {
                 editableTunnels = sideEffect.tunnels
                 latencies = sideEffect.latencies
+            }
+            is LocalSideEffect.CountryFetchFinished -> {
+                val byId = sideEffect.tunnels.associateBy { it.id }
+                editableTunnels = editableTunnels.map { byId[it.id] ?: it }
             }
             else -> Unit
         }
@@ -113,7 +121,10 @@ fun SortScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel()) {
             ReorderableItem(reorderableLazyListState, tunnel.id) { isDragging ->
                 val latency = latencies[tunnel.id]
                 val text = buildAnnotatedString {
+                    val flag = GeoIpService.codeToFlag(tunnel.countryCode)
+                    if (flag.isNotEmpty()) append("$flag ")
                     append(tunnel.name)
+                    tunnel.countryName?.let { append(" • $it") }
                     if (latency != null && latency != Double.MAX_VALUE) {
                         append(" - ")
                         val color =

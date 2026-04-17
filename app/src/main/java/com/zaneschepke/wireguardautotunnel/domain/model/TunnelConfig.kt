@@ -28,6 +28,9 @@ data class TunnelConfig(
     val position: Int = 0,
     val autoTunnelApps: Set<String> = setOf(),
     val isMetered: Boolean = false,
+    val countryName: String? = null,
+    val countryCode: String? = null,
+    val resolvedIp: String? = null,
 ) {
 
     override fun equals(other: Any?): Boolean {

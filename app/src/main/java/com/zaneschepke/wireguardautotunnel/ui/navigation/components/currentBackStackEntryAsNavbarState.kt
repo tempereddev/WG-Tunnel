@@ -221,6 +221,18 @@ fun currentRouteAsNavbarState(
                                 IconButton(
                                     onClick = {
                                         sharedViewModel.postSideEffect(
+                                            LocalSideEffect.FetchCountries
+                                        )
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Public,
+                                        stringResource(R.string.fetch_countries),
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        sharedViewModel.postSideEffect(
                                             LocalSideEffect.SortByLatency
                                         )
                                     }

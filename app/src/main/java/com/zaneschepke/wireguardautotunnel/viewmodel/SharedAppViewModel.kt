@@ -29,6 +29,7 @@ import com.zaneschepke.wireguardautotunnel.util.extensions.QuickConfig
 import com.zaneschepke.wireguardautotunnel.util.extensions.TunnelName
 import com.zaneschepke.wireguardautotunnel.util.extensions.asStringValue
 import com.zaneschepke.wireguardautotunnel.util.extensions.saveTunnelsUniquely
+import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareGet
@@ -66,6 +67,7 @@ class SharedAppViewModel(
     private val httpClient: HttpClient,
     private val fileUtils: FileUtils,
     private val networkUtils: NetworkUtils,
+    private val geoIpService: GeoIpService,
 ) : ContainerHost<GlobalAppUiState, LocalSideEffect>, ViewModel() {
 
     val globalSideEffect = globalEffectRepository.flow
@@ -277,7 +279,54 @@ class SharedAppViewModel(
             }
         val sortedTunnels = sortedResult.map { it.first }
         val latencies = sortedResult.associate { it.first.id to it.second }
+        tunnelRepository.saveAll(
+            sortedTunnels.mapIndexed { index, conf -> conf.copy(position = index) }
+        )
         postSideEffect(LocalSideEffect.LatencySortFinished(sortedTunnels, latencies))
+    }
+
+    fun fetchCountries(tunnels: List<TunnelConfig>) = intent {
+        postSideEffect(
+            GlobalSideEffect.Snackbar(StringValue.StringResource(R.string.fetching_countries))
+        )
+        val updated =
+            withContext(Dispatchers.IO) {
+                tunnels
+                    .map { tunnel ->
+                        async {
+                            val host =
+                                try {
+                                    tunnel
+                                        .toAmConfig()
+                                        .peers
+                                        .firstOrNull()
+                                        ?.endpoint
+                                        ?.orElse(null)
+                                        ?.host
+                                } catch (_: Exception) {
+                                    null
+                                }
+                            if (host == null) {
+                                tunnel
+                            } else {
+                                val geo = geoIpService.lookup(host)
+                                if (geo != null) {
+                                    tunnel.copy(
+                                        countryName = geo.countryName,
+                                        countryCode = geo.countryCode,
+                                        resolvedIp = geo.ip,
+                                    )
+                                } else tunnel
+                            }
+                        }
+                    }
+                    .awaitAll()
+            }
+        tunnelRepository.saveAll(updated)
+        postSideEffect(LocalSideEffect.CountryFetchFinished(updated))
+        postSideEffect(
+            GlobalSideEffect.Snackbar(StringValue.StringResource(R.string.countries_updated))
+        )
     }
 
     fun importTunnelConfigs(configs: Map<QuickConfig, TunnelName>) = intent {

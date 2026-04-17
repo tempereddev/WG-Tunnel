@@ -5,6 +5,8 @@ import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
@@ -32,6 +34,7 @@ import com.zaneschepke.wireguardautotunnel.ui.navigation.Route
 import com.zaneschepke.wireguardautotunnel.ui.state.TunnelsUiState
 import com.zaneschepke.wireguardautotunnel.util.extensions.asColor
 import com.zaneschepke.wireguardautotunnel.util.extensions.openWebUrl
+import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.viewmodel.SharedAppViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -89,6 +92,18 @@ fun TunnelList(
                     mutableStateOf(tunnelState.health().asColor())
                 }
 
+            val flag = remember(tunnel.countryCode) { GeoIpService.codeToFlag(tunnel.countryCode) }
+            val displayTitle =
+                remember(tunnel.name, flag) {
+                    if (flag.isNotEmpty()) "$flag  ${tunnel.name}" else tunnel.name
+                }
+            val countryLine =
+                remember(tunnel.countryName, tunnel.resolvedIp) {
+                    listOfNotNull(tunnel.countryName, tunnel.resolvedIp)
+                        .joinToString(" • ")
+                        .ifBlank { null }
+                }
+
             SurfaceRow(
                 modifier = Modifier.animateItem(),
                 leading = {
@@ -99,7 +114,17 @@ fun TunnelList(
                         modifier = Modifier.size(14.dp),
                     )
                 },
-                title = tunnel.name,
+                title = displayTitle,
+                description =
+                    countryLine?.let {
+                        {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
                 onClick = {
                     if (uiState.selectedTunnels.isNotEmpty()) {
                         viewModel.toggleSelectedTunnel(tunnel.id)

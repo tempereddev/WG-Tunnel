@@ -29,6 +29,9 @@ data class TunnelConfig(
     @ColumnInfo(name = "auto_tunnel_apps", defaultValue = "[]")
     val autoTunnelApps: Set<String> = emptySet(),
     @ColumnInfo(name = "is_metered", defaultValue = "false") val isMetered: Boolean = false,
+    @ColumnInfo(name = "country_name", defaultValue = "null") val countryName: String? = null,
+    @ColumnInfo(name = "country_code", defaultValue = "null") val countryCode: String? = null,
+    @ColumnInfo(name = "resolved_ip", defaultValue = "null") val resolvedIp: String? = null,
 ) {
     companion object {
         const val GLOBAL_CONFIG_NAME = "4675ab06-903a-438b-8485-6ea4187a9512"

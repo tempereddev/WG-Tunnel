@@ -301,7 +301,12 @@
     <string name="kernel_name_special_characters">Tunnel name in kernel mode cannot have spaces or certain special characters (allowed: alphanumeric, _, =, +, ., -)</string>
     <string name="add_from_clipboard">Add from clipboard</string>
     <string name="kernel_name_error">Kernel module name error</string>
-    <string name="sort">Sort</string>
+    <string name="sort">مرتب‌سازی</string>
+    <string name="sort_by_latency">مرتب‌سازی بر اساس پینگ</string>
+    <string name="pinging_servers">در حال پینگ سرورها…</string>
+    <string name="fetch_countries">دریافت پرچم کشورها</string>
+    <string name="fetching_countries">در حال دریافت اطلاعات کشورها…</string>
+    <string name="countries_updated">اطلاعات کشورها به‌روزرسانی شد</string>
     <string name="_continue">Continue</string>
     <string name="create_import">Create from scratch</string>
     <string name="_false">False</string>
