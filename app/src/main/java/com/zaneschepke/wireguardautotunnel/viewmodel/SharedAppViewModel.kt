@@ -29,7 +29,6 @@ import com.zaneschepke.wireguardautotunnel.util.extensions.QuickConfig
 import com.zaneschepke.wireguardautotunnel.util.extensions.TunnelName
 import com.zaneschepke.wireguardautotunnel.util.extensions.asStringValue
 import com.zaneschepke.wireguardautotunnel.util.extensions.saveTunnelsUniquely
-import com.zaneschepke.wireguardautotunnel.domain.state.TunnelStatus
 import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
 import com.zaneschepke.wireguardautotunnel.util.network.VpnNetworkLocator
@@ -145,7 +144,7 @@ class SharedAppViewModel(
                     val justUp =
                         activeMap.entries
                             .asSequence()
-                            .filter { it.value.status is TunnelStatus.Up }
+                            .filter { it.value.status.isUp() }
                             .map { it.key }
                             .filter { it !in autoDetectedTunnelIds }
                             .toList()
