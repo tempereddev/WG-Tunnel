@@ -7,8 +7,6 @@ sealed class LocalSideEffect {
 
     data object SortByLatency : LocalSideEffect()
 
-    data object FetchCountries : LocalSideEffect()
-
     data class LatencySortFinished(
         val tunnels: List<TunnelConfig>,
         val latencies: Map<Int, Double>,

@@ -31,6 +31,7 @@ data class TunnelConfig(
     val countryName: String? = null,
     val countryCode: String? = null,
     val resolvedIp: String? = null,
+    val latencyMs: Double? = null,
 ) {
 
     override fun equals(other: Any?): Boolean {

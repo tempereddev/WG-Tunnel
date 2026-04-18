@@ -29,8 +29,10 @@ import com.zaneschepke.wireguardautotunnel.util.extensions.QuickConfig
 import com.zaneschepke.wireguardautotunnel.util.extensions.TunnelName
 import com.zaneschepke.wireguardautotunnel.util.extensions.asStringValue
 import com.zaneschepke.wireguardautotunnel.util.extensions.saveTunnelsUniquely
+import com.zaneschepke.wireguardautotunnel.domain.state.TunnelStatus
 import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
+import com.zaneschepke.wireguardautotunnel.util.network.VpnNetworkLocator
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsText
@@ -68,7 +70,16 @@ class SharedAppViewModel(
     private val fileUtils: FileUtils,
     private val networkUtils: NetworkUtils,
     private val geoIpService: GeoIpService,
+    private val vpnNetworkLocator: VpnNetworkLocator,
 ) : ContainerHost<GlobalAppUiState, LocalSideEffect>, ViewModel() {
+
+    /**
+     * IDs of tunnels whose country/IP auto-detection has already been attempted during this
+     * process lifetime. We don't redo the API call every time the same tunnel comes back up,
+     * which would waste data and rate-limit quota. The stored tunnel fields still act as a
+     * persistent cache across process restarts.
+     */
+    private val autoDetectedTunnelIds = mutableSetOf<Int>()
 
     val globalSideEffect = globalEffectRepository.flow
 
@@ -124,6 +135,22 @@ class SharedAppViewModel(
                         )
                     }
                     .collect { newState -> reduce { newState } }
+            }
+
+            intent {
+                // Auto-detect country / exit IP / in-tunnel latency whenever a tunnel comes UP
+                // for the first time in this process. Runs the HTTP lookup bound to the VPN
+                // Network so the API sees the tunnel's real egress IP, not the device's IP.
+                tunnelManager.activeTunnels.collect { activeMap ->
+                    val justUp =
+                        activeMap.entries
+                            .asSequence()
+                            .filter { it.value.status is TunnelStatus.Up }
+                            .map { it.key }
+                            .filter { it !in autoDetectedTunnelIds }
+                            .toList()
+                    justUp.forEach { id -> autoDetectTunnelInfo(id) }
+                }
             }
 
             intent {
@@ -280,53 +307,63 @@ class SharedAppViewModel(
         val sortedTunnels = sortedResult.map { it.first }
         val latencies = sortedResult.associate { it.first.id to it.second }
         tunnelRepository.saveAll(
-            sortedTunnels.mapIndexed { index, conf -> conf.copy(position = index) }
+            sortedTunnels.mapIndexed { index, conf ->
+                val measured = latencies[conf.id]
+                val stored = if (measured != null && measured != Double.MAX_VALUE) measured else conf.latencyMs
+                conf.copy(position = index, latencyMs = stored)
+            }
         )
         postSideEffect(LocalSideEffect.LatencySortFinished(sortedTunnels, latencies))
     }
 
-    fun fetchCountries(tunnels: List<TunnelConfig>) = intent {
-        postSideEffect(
-            GlobalSideEffect.Snackbar(StringValue.StringResource(R.string.fetching_countries))
-        )
-        val updated =
-            withContext(Dispatchers.IO) {
-                tunnels
-                    .map { tunnel ->
-                        async {
-                            val host =
-                                try {
-                                    tunnel
-                                        .toAmConfig()
-                                        .peers
-                                        .firstOrNull()
-                                        ?.endpoint
-                                        ?.orElse(null)
-                                        ?.host
-                                } catch (_: Exception) {
-                                    null
-                                }
-                            if (host == null) {
-                                tunnel
-                            } else {
-                                val geo = geoIpService.lookup(host)
-                                if (geo != null) {
-                                    tunnel.copy(
-                                        countryName = geo.countryName,
-                                        countryCode = geo.countryCode,
-                                        resolvedIp = geo.ip,
-                                    )
-                                } else tunnel
+    /**
+     * Runs a one-shot geolocation + ping lookup through the freshly-established tunnel and
+     * persists the result. The [id] is marked as "already tried" regardless of success so we
+     * don't retry on every subsequent UP event — if the tunnel's exit can't reach the public
+     * internet (e.g. an Iran-side config behind domestic filters) we simply keep whatever data
+     * we had before.
+     */
+    private fun autoDetectTunnelInfo(id: Int) = intent {
+        autoDetectedTunnelIds.add(id)
+        val tunnel = tunnelRepository.userTunnelsFlow.firstOrNull()?.firstOrNull { it.id == id }
+        if (tunnel == null) {
+            autoDetectedTunnelIds.remove(id)
+            return@intent
+        }
+        // Wait up to 5s for the VpnService network to actually appear — tunnel UP status can
+        // precede the Network object being registered with ConnectivityManager.
+        val network = vpnNetworkLocator.awaitVpnNetwork(timeoutMillis = 5_000)
+        if (network == null) {
+            Timber.d("autoDetect: no VPN Network available for tunnel $id, skipping")
+            return@intent
+        }
+        val (geo, latency) =
+            kotlinx.coroutines.coroutineScope {
+                val geoDeferred =
+                    async(Dispatchers.IO) { geoIpService.lookupExitIp(network) }
+                val latencyDeferred =
+                    async(Dispatchers.IO) {
+                        runCatching {
+                                val stats = networkUtils.pingWithStats("1.1.1.1", 3, 5_000)
+                                if (stats.isReachable) stats.rttAvg else null
                             }
-                        }
+                            .getOrNull()
                     }
-                    .awaitAll()
+                geoDeferred.await() to latencyDeferred.await()
             }
-        tunnelRepository.saveAll(updated)
-        postSideEffect(LocalSideEffect.CountryFetchFinished(updated))
-        postSideEffect(
-            GlobalSideEffect.Snackbar(StringValue.StringResource(R.string.countries_updated))
-        )
+        if (geo == null && latency == null) {
+            Timber.d("autoDetect: tunnel $id has no public connectivity, keeping old info")
+            return@intent
+        }
+        val updated =
+            tunnel.copy(
+                countryName = geo?.countryName ?: tunnel.countryName,
+                countryCode = geo?.countryCode ?: tunnel.countryCode,
+                resolvedIp = geo?.ip ?: tunnel.resolvedIp,
+                latencyMs = latency ?: tunnel.latencyMs,
+            )
+        tunnelRepository.saveAll(listOf(updated))
+        postSideEffect(LocalSideEffect.CountryFetchFinished(listOf(updated)))
     }
 
     fun importTunnelConfigs(configs: Map<QuickConfig, TunnelName>) = intent {

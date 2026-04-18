@@ -1,0 +1,4 @@
+- Country, exit IP and latency are now auto-detected the first time each tunnel comes up, using a request routed *through* the tunnel so the real egress IP is identified
+- Tunnels whose exit cannot reach the public internet (e.g. Iran-side configs) degrade silently and keep whatever data was already stored
+- Removed the manual Fetch Countries and Test Latency buttons — the lookup now happens on its own
+- Main tunnels list now displays flag, country, IP and the latest ping per tunnel

@@ -98,8 +98,9 @@ fun TunnelList(
                     if (flag.isNotEmpty()) "$flag  ${tunnel.name}" else tunnel.name
                 }
             val countryLine =
-                remember(tunnel.countryName, tunnel.resolvedIp) {
-                    listOfNotNull(tunnel.countryName, tunnel.resolvedIp)
+                remember(tunnel.countryName, tunnel.resolvedIp, tunnel.latencyMs) {
+                    val ping = tunnel.latencyMs?.let { "${it.toInt()} ms" }
+                    listOfNotNull(tunnel.countryName, tunnel.resolvedIp, ping)
                         .joinToString(" • ")
                         .ifBlank { null }
                 }

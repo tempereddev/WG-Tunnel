@@ -77,9 +77,6 @@ fun SortScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel()) {
             LocalSideEffect.SortByLatency -> {
                 sharedViewModel.sortByLatency(editableTunnels)
             }
-            LocalSideEffect.FetchCountries -> {
-                sharedViewModel.fetchCountries(editableTunnels)
-            }
             is LocalSideEffect.LatencySortFinished -> {
                 editableTunnels = sideEffect.tunnels
                 latencies = sideEffect.latencies

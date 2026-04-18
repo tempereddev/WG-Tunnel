@@ -23,6 +23,7 @@ fun Entity.toDomain(): Domain =
         countryName = countryName,
         countryCode = countryCode,
         resolvedIp = resolvedIp,
+        latencyMs = latencyMs,
     )
 
 fun Domain.toEntity(): Entity =
@@ -45,4 +46,5 @@ fun Domain.toEntity(): Entity =
         countryName = countryName,
         countryCode = countryCode,
         resolvedIp = resolvedIp,
+        latencyMs = latencyMs,
     )

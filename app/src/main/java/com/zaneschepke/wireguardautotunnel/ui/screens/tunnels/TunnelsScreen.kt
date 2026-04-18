@@ -53,26 +53,6 @@ fun TunnelsScreen(sharedViewModel: SharedAppViewModel = koinActivityViewModel())
             LocalSideEffect.Sheet.ExportTunnels -> showExportSheet = true
             LocalSideEffect.SelectedTunnels.Copy -> sharedViewModel.copySelectedTunnel()
             LocalSideEffect.SelectedTunnels.SelectAll -> sharedViewModel.toggleSelectAllTunnels()
-            LocalSideEffect.FetchCountries -> {
-                if (uiState.tunnels.isEmpty()) return@collectSideEffect
-                if (uiState.activeTunnels.isEmpty()) {
-                    sharedViewModel.showSnackMessage(
-                        StringValue.StringResource(R.string.connect_tunnel_first)
-                    )
-                } else {
-                    sharedViewModel.fetchCountries(uiState.tunnels)
-                }
-            }
-            LocalSideEffect.SortByLatency -> {
-                if (uiState.tunnels.isEmpty()) return@collectSideEffect
-                if (uiState.activeTunnels.isEmpty()) {
-                    sharedViewModel.showSnackMessage(
-                        StringValue.StringResource(R.string.connect_tunnel_first)
-                    )
-                } else {
-                    sharedViewModel.sortByLatency(uiState.tunnels)
-                }
-            }
             else -> Unit
         }
     }

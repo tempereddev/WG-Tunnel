@@ -304,10 +304,6 @@
     <string name="sort">مرتب‌سازی</string>
     <string name="sort_by_latency">مرتب‌سازی بر اساس پینگ</string>
     <string name="pinging_servers">در حال پینگ سرورها…</string>
-    <string name="fetch_countries">دریافت پرچم کشورها</string>
-    <string name="fetching_countries">در حال دریافت اطلاعات کشورها…</string>
-    <string name="countries_updated">اطلاعات کشورها به‌روزرسانی شد</string>
-    <string name="connect_tunnel_first">ابتدا یک تونل را متصل کنید، سپس دوباره امتحان کنید</string>
     <string name="_continue">Continue</string>
     <string name="create_import">Create from scratch</string>
     <string name="_false">False</string>

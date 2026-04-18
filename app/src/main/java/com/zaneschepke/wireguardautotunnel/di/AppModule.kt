@@ -15,6 +15,7 @@ import com.zaneschepke.wireguardautotunnel.domain.repository.SelectedTunnelsRepo
 import com.zaneschepke.wireguardautotunnel.util.FileUtils
 import com.zaneschepke.wireguardautotunnel.util.network.GeoIpService
 import com.zaneschepke.wireguardautotunnel.util.network.NetworkUtils
+import com.zaneschepke.wireguardautotunnel.util.network.VpnNetworkLocator
 import com.zaneschepke.wireguardautotunnel.viewmodel.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +59,8 @@ val appModule = module {
     singleOf(::SelectedTunnelsRepository)
 
     single { NetworkUtils(get(named(Dispatcher.IO))) }
-    single { GeoIpService(get(), get(named(Dispatcher.IO))) }
+    single { GeoIpService(get(named(Dispatcher.IO))) }
+    single { VpnNetworkLocator(androidContext()) }
 
     viewModelOf(::AutoTunnelViewModel)
     viewModel { (id: Int?) -> ConfigViewModel(get(), get(), get(), id) }

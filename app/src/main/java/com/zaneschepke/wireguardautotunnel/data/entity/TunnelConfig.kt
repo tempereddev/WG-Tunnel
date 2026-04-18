@@ -32,6 +32,7 @@ data class TunnelConfig(
     @ColumnInfo(name = "country_name", defaultValue = "null") val countryName: String? = null,
     @ColumnInfo(name = "country_code", defaultValue = "null") val countryCode: String? = null,
     @ColumnInfo(name = "resolved_ip", defaultValue = "null") val resolvedIp: String? = null,
+    @ColumnInfo(name = "latency_ms", defaultValue = "null") val latencyMs: Double? = null,
 ) {
     companion object {
         const val GLOBAL_CONFIG_NAME = "4675ab06-903a-438b-8485-6ea4187a9512"
