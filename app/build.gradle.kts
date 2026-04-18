@@ -84,7 +84,7 @@ android {
 
         debug {
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "WG Tunnel Debug")
+            resValue("string", "app_name", "WG Tunnel Pro")
             isDebuggable = true
             resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
         }

@@ -23,29 +23,31 @@ class GeoIpService(
 ) {
 
     @Serializable
-    private data class IpApiResponse(
-        @SerialName("status") val status: String? = null,
+    private data class IpWhoIsResponse(
+        @SerialName("success") val success: Boolean = false,
+        @SerialName("ip") val ip: String? = null,
         @SerialName("country") val country: String? = null,
-        @SerialName("countryCode") val countryCode: String? = null,
-        @SerialName("query") val query: String? = null,
+        @SerialName("country_code") val countryCode: String? = null,
         @SerialName("message") val message: String? = null,
     )
 
     /**
      * Resolves the host (domain or IP) to an IP and then fetches country/flag metadata from
-     * ip-api.com (free, no key, 45 req/min per source IP). Returns null if lookup fails for any
+     * ipwho.is over HTTPS (free, no key, no cleartext). Returns null if lookup fails for any
      * reason — caller should treat as "unknown".
      */
     suspend fun lookup(host: String): GeoIpResult? =
         withContext(ioDispatcher) {
             runCatching {
-                    val ip = InetAddress.getByName(host).hostAddress ?: host
-                    val response: HttpResponse =
-                        httpClient.get("http://ip-api.com/json/$ip?fields=status,message,country,countryCode,query")
-                    val body: IpApiResponse = response.body()
-                    if (body.status == "success") {
+                    val ip =
+                        runCatching { InetAddress.getByName(host).hostAddress }
+                            .getOrNull()
+                            ?: host
+                    val response: HttpResponse = httpClient.get("https://ipwho.is/$ip")
+                    val body: IpWhoIsResponse = response.body()
+                    if (body.success) {
                         GeoIpResult(
-                            ip = body.query ?: ip,
+                            ip = body.ip ?: ip,
                             countryName = body.country,
                             countryCode = body.countryCode,
                         )

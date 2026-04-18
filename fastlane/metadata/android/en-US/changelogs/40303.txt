@@ -1,0 +1,4 @@
+- Moved "Fetch country flags" and "Test latency" buttons from Sort screen to the main Tunnels screen so they run through an already-connected tunnel
+- Actions now require an active tunnel and fall back to a helpful message otherwise
+- Switched GeoIP lookup to HTTPS (ipwho.is) so it works on modern Android without cleartext exceptions
+- Renamed app display name to "WG Tunnel Pro"
