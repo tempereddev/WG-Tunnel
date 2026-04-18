@@ -304,6 +304,7 @@
     <string name="sort">مرتب‌سازی</string>
     <string name="sort_by_latency">مرتب‌سازی بر اساس پینگ</string>
     <string name="pinging_servers">در حال پینگ سرورها…</string>
+    <string name="reorder">جابجایی دستی</string>
     <string name="_continue">Continue</string>
     <string name="create_import">Create from scratch</string>
     <string name="_false">False</string>

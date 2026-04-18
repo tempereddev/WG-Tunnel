@@ -215,35 +215,14 @@ fun currentRouteAsNavbarState(
                             }
                         },
                         showBottomItems = true,
-                        topTitle = context.getString(R.string.sort),
+                        topTitle = context.getString(R.string.reorder),
                         topTrailing = {
-                            Row {
-                                IconButton(
-                                    onClick = {
-                                        sharedViewModel.postSideEffect(
-                                            LocalSideEffect.SortByLatency
-                                        )
-                                    }
-                                ) {
-                                    Icon(
-                                        Icons.Rounded.NetworkCheck,
-                                        stringResource(R.string.sort_by_latency),
-                                    )
+                            IconButton(
+                                onClick = {
+                                    sharedViewModel.postSideEffect(LocalSideEffect.SaveChanges)
                                 }
-                                IconButton(
-                                    onClick = {
-                                        sharedViewModel.postSideEffect(LocalSideEffect.Sort)
-                                    }
-                                ) {
-                                    Icon(Icons.Rounded.SortByAlpha, stringResource(R.string.sort))
-                                }
-                                IconButton(
-                                    onClick = {
-                                        sharedViewModel.postSideEffect(LocalSideEffect.SaveChanges)
-                                    }
-                                ) {
-                                    Icon(Icons.Rounded.Save, stringResource(R.string.save))
-                                }
+                            ) {
+                                Icon(Icons.Rounded.Save, stringResource(R.string.save))
                             }
                         },
                     )
@@ -383,10 +362,24 @@ fun currentRouteAsNavbarState(
                             when (globalState.selectedTunnelCount) {
                                 0 ->
                                     Row {
+                                        IconButton(
+                                            onClick = { sharedViewModel.sortByLatency(sharedViewModel.tunnelsUiState.value.tunnels) }
+                                        ) {
+                                            Icon(
+                                                Icons.Rounded.Speed,
+                                                stringResource(R.string.sort_by_latency),
+                                            )
+                                        }
+                                        IconButton(onClick = { sharedViewModel.toggleSortByName() }) {
+                                            Icon(
+                                                Icons.Rounded.SortByAlpha,
+                                                stringResource(R.string.sort),
+                                            )
+                                        }
                                         IconButton(onClick = { navController.push(Sort) }) {
                                             Icon(
-                                                Icons.AutoMirrored.Rounded.Sort,
-                                                stringResource(R.string.sort),
+                                                Icons.Rounded.SwapVert,
+                                                stringResource(R.string.reorder),
                                             )
                                         }
                                         IconButton(

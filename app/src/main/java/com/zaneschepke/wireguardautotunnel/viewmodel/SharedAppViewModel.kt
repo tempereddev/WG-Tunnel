@@ -80,6 +80,12 @@ class SharedAppViewModel(
      */
     private val autoDetectedTunnelIds = mutableSetOf<Int>()
 
+    /**
+     * Tracks alphabetical sort direction cycled by repeated taps on the main screen's A-Z icon.
+     * null = not yet sorted by name this session, true = ascending, false = descending.
+     */
+    private var nameSortAscending: Boolean? = null
+
     val globalSideEffect = globalEffectRepository.flow
 
     val tunnelsUiState =
@@ -259,6 +265,23 @@ class SharedAppViewModel(
 
     fun disableBatteryOptimizationsShown() = intent {
         appStateRepository.setBatteryOptimizationDisableShown(true)
+    }
+
+    /**
+     * Sorts tunnels alphabetically and persists the new order. Each invocation toggles between
+     * ascending and descending so a second tap flips direction. Used by the main Tunnels screen
+     * — the dedicated Sort screen still exists for manual drag-and-drop reordering.
+     */
+    fun toggleSortByName() = intent {
+        val ascending = !(nameSortAscending ?: false)
+        nameSortAscending = ascending
+        val current = tunnelRepository.userTunnelsFlow.firstOrNull() ?: return@intent
+        val sorted =
+            if (ascending) current.sortedBy { it.name.lowercase() }
+            else current.sortedByDescending { it.name.lowercase() }
+        tunnelRepository.saveAll(
+            sorted.mapIndexed { index, conf -> conf.copy(position = index) }
+        )
     }
 
     fun saveSortChanges(tunnels: List<TunnelConfig>) = intent {

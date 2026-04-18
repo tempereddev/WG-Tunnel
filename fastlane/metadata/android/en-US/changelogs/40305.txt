@@ -1,0 +1,3 @@
+- Consolidated the most-used actions onto the main Tunnels screen: Latency test (Speed icon), alphabetical sort toggle (A-Z icon) and manual reorder (SwapVert icon) sit next to the Add icon
+- The dedicated Sort screen is now only for manual drag-and-drop reordering; its redundant latency/alpha buttons were removed
+- Alphabetical sort persists to the database on the first tap and flips direction on subsequent taps
